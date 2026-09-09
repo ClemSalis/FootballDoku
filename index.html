@@ -258,7 +258,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
       <div class="end-score" id="end-score-val">0 pts</div>
       <div class="end-stats" id="end-stats"></div>
       <div class="emoji-grid" id="end-emojis"></div>
-      <p style="font-size:.72rem;color:#888;margin-bottom:8px">🟩 120pts · 🟦 100pts · 🟨 80pts · 🟧 65pts · 🟥 50pts · ⬜ non trouvé</p>
+      <p style="font-size:.72rem;color:#888;margin-bottom:8px">🟩 115pts Mythique · 🟦 90pts Rare · 🟧 75pts Commun · 🟥 60pts Très commun · ⬜ non trouvé</p>
       <div class="end-actions">
         <button class="btn btn-primary" id="end-copy">📋 Copier le résultat</button>
         <button class="btn" id="end-random">Nouvelle grille</button>
@@ -278,7 +278,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
       <div class="help-rule"><span class="icon">⚽</span><span>Trouvez un joueur qui correspond <strong>à la fois</strong> au critère de sa ligne et de sa colonne.</span></div>
       <div class="help-rule"><span class="icon">🚫</span><span>Chaque joueur ne peut être utilisé qu'une seule fois dans la grille.</span></div>
       <div class="help-rule"><span class="icon">❌</span><span>Vous avez droit à <strong>3 erreurs</strong> maximum. Une erreur = un joueur qui ne satisfait pas les deux critères. Chaque erreur coûte <strong>20 pts</strong>.</span></div>
-      <div class="help-rule"><span class="icon">🏆</span><span>Le score dépend de la célébrité du joueur choisi : moins il est connu (peak MV Transfermarkt), plus ça rapporte — de <strong>50 à 120 pts</strong> par case.</span></div>
+      <div class="help-rule"><span class="icon">🏆</span><span>Le score dépend de la célébrité du joueur parmi les réponses possibles de la case : <strong>Mythique 115pts · Rare 90pts · Commun 75pts · Très commun 60pts</strong>.</span></div>
       <div class="help-rule"><span class="icon">?</span><span>Cliquez sur l'en-tête d'un critère pour voir combien de joueurs le satisfont.</span></div>
       <div class="help-rule"><span class="icon">⚠️</span><span>Les données couvrent uniquement les matchs joués à partir de <strong>juillet 2012</strong>.</span></div>
       <label class="dont-show">
@@ -446,8 +446,28 @@ function generateGrid(rng){
   return null;
 }
 
+// ─── CELL-RELATIVE SCORING ───────────────────────────────────────────────────
+function computeCellScores(cells){
+  return cells.map(cellPlayers=>{
+    const sorted=cellPlayers.slice().sort((a,b)=>a.mv-b.mv); // ascending mv = less famous first = more pts
+    const n=sorted.length;
+    const map=new Map();
+    sorted.forEach((p,i)=>{
+      const pct=i/n;
+      let pts;
+      if(pct<0.25)pts=115;
+      else if(pct<0.5)pts=90;
+      else if(pct<0.75)pts=75;
+      else pts=60;
+      map.set(p.id,pts);
+    });
+    return map;
+  });
+}
+function cellPts(cellIdx,player){return(cellScores[cellIdx]&&cellScores[cellIdx].get(player.id))||player.pts}
+
 // ─── GAME STATE ──────────────────────────────────────────────────────────────
-let grid=null,answers=new Array(9).fill(null),errors=0,score=0,gameOver=false,activeCell=-1;
+let grid=null,cellScores=[],answers=new Array(9).fill(null),errors=0,score=0,gameOver=false,activeCell=-1,solutionsMode=false;
 const ERROR_PENALTY=20;
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -457,21 +477,24 @@ function renderHeader(el,crit){
   el.dataset.critId=crit.id;
   el.style.borderColor=TYPE_COLOR[crit.type];
 }
-function tierClass(pts){return{120:'t1',100:'t2',80:'t3',65:'t4',50:'t5'}[pts]||'t5'}
-function tierLabel(pts){return{120:'Mythique',100:'Rare',80:'Peu commun',65:'Commun',50:'Très commun'}[pts]||''}
-function emojiForPts(pts){return{120:'🟩',100:'🟦',80:'🟨',65:'🟧',50:'🟥'}[pts]||'🟥'}
+function tierClass(pts){return{115:'t1',90:'t2',75:'t4',60:'t5'}[pts]||'t5'}
+function tierLabel(pts){return{115:'Mythique',90:'Rare',75:'Commun',60:'Très commun'}[pts]||''}
+function emojiForPts(pts){return{115:'🟩',90:'🟦',75:'🟧',60:'🟥'}[pts]||'🟥'}
 function renderCell(idx){
   const el=document.getElementById(`cell-${idx}`);
   const ans=answers[idx];const sol=grid.solution[idx];
   if(ans){
     el.classList.add('filled');el.classList.remove('revealed');
-    el.innerHTML=`<span class="player-name">${ans.n}</span><span class="pts-badge ${tierClass(ans.pts)}">+${ans.pts} pts</span><span class="rarity-label">${tierLabel(ans.pts)}</span>`;
+    const pts=cellPts(idx,ans);
+    el.innerHTML=`<span class="player-name">${ans.n}</span><span class="pts-badge ${tierClass(pts)}">+${pts} pts</span><span class="rarity-label">${tierLabel(pts)}</span>`;
   }else if(gameOver&&sol){
     el.classList.add('revealed');
-    el.innerHTML=`<span class="player-name" style="color:#92400e">${sol.n}</span><span class="pts-badge t3" style="background:#78350f">sol.</span>`;
+    el.style.cursor='pointer';
+    el.innerHTML=`<span class="player-name" style="color:#92400e">${sol.n}</span><span style="font-size:.6rem;color:#92400e;margin-top:3px;display:block">Cliquer pour voir toutes les réponses</span>`;
   }else{
     el.classList.remove('filled','revealed');
-    el.innerHTML=`<span class="plus-icon">${gameOver?'':'+'}</span>`;
+    el.style.cursor='';
+    el.innerHTML=`<span class="plus-icon">+</span>`;
   }
 }
 function renderErrors(){for(let i=0;i<3;i++)document.getElementById(`d${i}`).classList.toggle('filled',i<errors)}
@@ -498,7 +521,36 @@ function openSearch(cellIdx){
   document.getElementById('search-modal').hidden=false;
   setTimeout(()=>document.getElementById('search-input').focus(),50);
 }
-function closeSearch(){document.getElementById('search-modal').hidden=true;activeCell=-1}
+function closeSearch(){
+  document.getElementById('search-modal').hidden=true;
+  document.getElementById('search-input').hidden=false;
+  solutionsMode=false;activeCell=-1;
+}
+function openSolutions(cellIdx){
+  solutionsMode=true;activeCell=cellIdx;
+  const row=Math.floor(cellIdx/3),col=cellIdx%3;
+  const rc=grid.rows[row],cc=grid.cols[col];
+  const players=grid.cells[cellIdx];
+  const count=players.length;
+  document.getElementById('search-cell-info').innerHTML=
+    `<div class="crit-row">${critBadge(rc.type)} <span>${rc.label}</span></div>
+     <div class="crit-row">${critBadge(cc.type)} <span>${cc.label}</span></div>
+     <div class="search-answer-count">${count} réponse${count>1?'s':''} possible${count>1?'s':''} pour cette case</div>`;
+  document.getElementById('search-input').hidden=true;
+  const sorted=players.slice().sort((a,b)=>{
+    const pa=cellPts(cellIdx,a),pb=cellPts(cellIdx,b);
+    return pb-pa; // most obscure (highest pts) first
+  });
+  document.getElementById('search-results').innerHTML=sorted.map(p=>{
+    const pts=cellPts(cellIdx,p);
+    return `<div class="result-item" style="cursor:default">
+      <span class="result-name">${p.n}</span>
+      <span class="result-meta">${p.nat} · ${p.sp||p.pos}</span>
+      <span class="pts-badge ${tierClass(pts)}" style="font-size:.65rem;padding:2px 6px;flex-shrink:0">+${pts}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('search-modal').hidden=false;
+}
 function doSearch(){
   const q=normStr(document.getElementById('search-input').value.trim());
   const res=document.getElementById('search-results');
@@ -526,7 +578,7 @@ function submitAnswer(cellIdx,player){
   const valid=grid.cells[cellIdx].some(p=>p.id===player.id);
   const el=document.getElementById(`cell-${cellIdx}`);
   if(valid){
-    answers[cellIdx]=player;score+=player.pts;
+    answers[cellIdx]=player;score+=cellPts(cellIdx,player);
     renderCell(cellIdx);renderScore();
     if(answers.every(Boolean))endGame('win');
   }else{
@@ -590,12 +642,17 @@ function startGame(){
   const rng=mulberry32(Math.random()*0xFFFFFFFF|0);
   grid=generateGrid(rng);
   if(!grid){showToast('Erreur de génération, réessai…');setTimeout(startGame,200);return}
+  cellScores=computeCellScores(grid.cells);
   renderGrid();
 }
 
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('.game-cell').forEach(el=>{
-  el.addEventListener('click',()=>{const i=parseInt(el.id.split('-')[1]);if(!gameOver&&!answers[i])openSearch(i)});
+  el.addEventListener('click',()=>{
+    const i=parseInt(el.id.split('-')[1]);
+    if(!gameOver&&!answers[i])openSearch(i);
+    else if(gameOver&&!answers[i])openSolutions(i);
+  });
 });
 document.querySelectorAll('.crit-header').forEach(el=>{
   el.addEventListener('click',e=>{if(el.dataset.critId){const c=CRITERIA.find(x=>x.id===el.dataset.critId);if(c){document.getElementById('explain-title').textContent=c.label;document.getElementById('explain-desc').textContent=c.desc;document.getElementById('explain-count').textContent=C_LIST[c.id].length.toLocaleString('fr-FR');document.getElementById('explain-modal').hidden=false}}});
