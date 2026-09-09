@@ -485,6 +485,7 @@ function renderCell(idx){
   const ans=answers[idx];const sol=grid.solution[idx];
   if(ans){
     el.classList.add('filled');el.classList.remove('revealed');
+    el.style.cursor=gameOver?'pointer':'default';
     const pts=cellPts(idx,ans);
     el.innerHTML=`<span class="player-name">${ans.n}</span><span class="pts-badge ${tierClass(pts)}">+${pts} pts</span><span class="rarity-label">${tierLabel(pts)}</span>`;
   }else if(gameOver&&sol){
@@ -651,7 +652,7 @@ document.querySelectorAll('.game-cell').forEach(el=>{
   el.addEventListener('click',()=>{
     const i=parseInt(el.id.split('-')[1]);
     if(!gameOver&&!answers[i])openSearch(i);
-    else if(gameOver&&!answers[i])openSolutions(i);
+    else if(gameOver)openSolutions(i);
   });
 });
 document.querySelectorAll('.crit-header').forEach(el=>{
