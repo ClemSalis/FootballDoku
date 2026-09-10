@@ -6,198 +6,221 @@
 <title>FootballDoku</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <style>
 
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root{
+  --bg:#F7F5ED;
+  --text:#1F2226;
+  --panel:#EFEBDD;
+  --border:#1F2226;
+  --green:#00543C;
+  --green-h:#007A56;
+  --red:#EB5D37;
+  --radius:14px;
+  --shadow:0 24px 64px rgba(31,34,38,.22);
+  --overlay:rgba(31,34,38,.55);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-html,body{height:100%}
-body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;display:flex;flex-direction:column}
-#app{display:flex;flex-direction:column;flex:1;min-height:0}
+html,body{min-height:100%}
+body{font-family:'Albert Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+.site{max-width:640px;margin:0 auto;padding:0 20px 60px}
 
 /* HEADER */
-#app-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:2px solid #1C232D;background:#fff;flex-shrink:0;flex-wrap:wrap;gap:8px}
-#app-header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
-.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-#streak-badge{font-size:.82rem;font-weight:600;background:#FFF3CD;border:1px solid #f59e0b;border-radius:20px;padding:3px 10px;color:#92400e}
-
-/* BUTTONS */
-.btn{cursor:pointer;border:2px solid #1C232D;background:#fff;color:#1C232D;font-family:inherit;font-size:.82rem;font-weight:600;padding:7px 14px;border-radius:0;transition:background .15s,color .15s;white-space:nowrap}
-.btn:hover{background:#1C232D;color:#fff}
-.btn-primary{background:#0A0082;color:#fff;border-color:#0A0082}
-.btn-primary:hover{background:#0800cc;border-color:#0800cc}
-.btn-danger{background:#dc2626;color:#fff;border-color:#dc2626}
-.btn-danger:hover{background:#b91c1c;border-color:#b91c1c}
+.site-header{border-bottom:1px solid #ddd7c4;margin-bottom:16px}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 0 14px;gap:12px;flex-wrap:wrap}
+.brand{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--text)}
+.nav{display:flex;align-items:center;gap:16px}
+.nav-link{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text);background:none;border:none;cursor:pointer;padding:6px 0;font-family:inherit}
+#streak-badge{display:inline-flex;align-items:center;gap:6px;background:var(--text);color:#fff;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:700}
 
 /* SCORE BAR */
-#score-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;flex-shrink:0;max-width:900px;width:100%;margin:0 auto}
-#score-display{font-size:1.1rem;font-weight:700}
-#score-display span{color:#0A0082}
-.errors-dots{display:flex;gap:6px;align-items:center;font-size:.85rem;font-weight:600}
-.err-dot{width:14px;height:14px;border-radius:50%;border:2px solid #dc2626;background:transparent;display:inline-block;transition:background .2s}
-.err-dot.filled{background:#dc2626}
+.game-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.score-display{font-size:16px;font-weight:800}
 
-/* GAME GRID */
-#grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:8px 16px 4px}
-#game-grid{
-  display:grid;
-  grid-template-columns:minmax(110px,150px) repeat(3,1fr);
-  grid-template-rows:minmax(110px,150px) repeat(3,1fr);
-  gap:7px;
-  width:100%;
-  max-width:860px;
-  height:clamp(420px,calc(100vh - 155px),780px);
-}
-.grid-corner{background:transparent}
-
-.crit-header{
-  background:#E8EDF3;
-  border:2px solid #1C232D;
-  border-radius:14px;
-  padding:10px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;
-  cursor:pointer;position:relative;user-select:none;overflow:hidden;
-}
-.crit-header:hover{background:#d8e2f0}
-.crit-badge{width:11px;height:11px;border-radius:50%;flex-shrink:0}
-.crit-label{font-size:.75rem;font-weight:700;line-height:1.3;word-break:break-word}
-.crit-help{position:absolute;top:5px;right:7px;font-size:.65rem;color:#555;font-weight:700;background:rgba(255,255,255,.7);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
-
-.game-cell{
-  background:#fff;
-  border:2px solid #1C232D;
-  border-radius:14px;
+/* GRID — 4 colonnes égales, toutes les cases aspect-ratio:1 */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.grid-corner{aspect-ratio:1;background:transparent}
+.head{
+  background:var(--panel);border-radius:var(--radius);aspect-ratio:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;
-  transition:background .12s,transform .08s;
-  padding:8px;text-align:center;user-select:none;position:relative;overflow:hidden;
+  text-align:center;font-size:11.5px;font-weight:700;line-height:1.25;
+  padding:8px 6px;cursor:pointer;position:relative;user-select:none;color:var(--text);
+  transition:background .12s;
 }
-.game-cell:hover:not(.filled):not(.revealed){background:#f0f4f8;transform:scale(1.02)}
-.game-cell.filled{background:#dcfce7;cursor:default}
-.game-cell.revealed{background:#fef9c3;cursor:default}
-.game-cell .player-name{font-size:.78rem;font-weight:700;line-height:1.3;word-break:break-word}
-.game-cell .pts-badge{font-size:.68rem;font-weight:700;border-radius:20px;padding:2px 7px;margin-top:4px;color:#fff}
+.head:hover{background:#e2ddd0}
+.head .crit-badge{width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-bottom:4px}
+.head .crit-label{font-size:10.5px;font-weight:700;line-height:1.25;word-break:break-word}
+.head .crit-help{
+  position:absolute;top:4px;right:4px;width:15px;height:15px;border-radius:50%;
+  background:rgba(31,34,38,.08);color:var(--text);font-size:9px;line-height:15px;
+  text-align:center;font-weight:700;cursor:pointer;
+}
+.head .crit-help:hover{background:rgba(31,34,38,.18)}
+
+.cell{
+  background:#fff;border:2px solid var(--border);border-radius:var(--radius);aspect-ratio:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;text-align:center;padding:8px 6px;cursor:pointer;
+  user-select:none;font-size:12px;font-weight:700;
+  transition:transform .08s ease;
+}
+.cell:hover:not(.filled):not(.revealed){transform:translateY(-2px)}
+.cell.filled{border-color:var(--green)}
+.cell.revealed{border-style:dashed;opacity:.85;cursor:pointer}
+.cell.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.cell .player-name{font-size:10.5px;font-weight:700;line-height:1.3;word-break:break-word}
+.cell .pts-badge{font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;color:#fff}
 .pts-badge.t1{background:#16a34a}
 .pts-badge.t2{background:#2563eb}
-.pts-badge.t3{background:#7c3aed}
 .pts-badge.t4{background:#d97706}
 .pts-badge.t5{background:#dc2626}
-.game-cell .rarity-label{font-size:.6rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:2px;opacity:.75}
-.game-cell .plus-icon{font-size:1.8rem;color:#ccc;line-height:1}
-.game-cell.shake{animation:shake .35s}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.cell .rarity-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
+.cell .plus-icon{font-size:1.5rem;color:#bbb;line-height:1}
 
 /* DATA NOTE */
-#data-note{text-align:center;font-size:.85rem;font-weight:700;color:#444;padding:6px 16px 10px;flex-shrink:0}
+#data-note{text-align:center;font-size:.85rem;font-weight:700;color:#555;padding:6px 0 16px}
 
-/* MODALS */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:16px}
-.modal-box{background:#fff;border:2px solid #1C232D;border-radius:0;box-shadow:6px 6px 0 #1C232D;max-width:500px;width:100%;margin-top:32px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid #1C232D;flex-shrink:0}
-.modal-header h2{font-size:1rem;font-weight:700}
+/* BOTTOM BAR */
+.game-bottombar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.controls-secondary{display:flex;justify-content:center;margin-bottom:16px}
+
+/* BUTTONS */
+.btn{font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.01em;border-radius:0;cursor:pointer;padding:12px 18px;border:2px solid;transition:background .12s,color .12s}
+.btn-primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-h);border-color:var(--green-h)}
+.btn-secondary{background:#fff;border-color:var(--border);color:var(--text)}
+.btn-secondary:hover{background:var(--panel)}
+.abandon-button{flex:1;min-width:180px;text-align:center}
+
+/* MISTAKE DOTS */
+.mistake-counter{display:flex;align-items:center;gap:8px}
+.mistake-label{font-size:14px;font-weight:700}
+.mistake-dots{display:flex;gap:6px}
+.err-dot{width:14px;height:14px;border-radius:999px;border:2px solid var(--border);background:transparent;display:inline-block;transition:background .2s}
+.err-dot.filled{background:var(--border)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:flex-start;justify-content:center;padding:60px 20px 20px;z-index:100;overflow-y:auto}
+.modal-box{background:#fff;border:2px solid var(--border);border-radius:0;box-shadow:var(--shadow);max-width:400px;width:100%;max-height:80vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:2px solid var(--border);flex-shrink:0}
+.modal-header h2{font-size:18px;font-weight:800}
 .modal-close{cursor:pointer;background:none;border:none;font-size:1.4rem;color:#888;line-height:1;padding:0 4px}
-.modal-close:hover{color:#1C232D}
-.modal-body{padding:16px;overflow-y:auto;flex:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:16px 20px;overflow-y:auto;flex:1;font-size:14px;line-height:1.55}
 
-/* SEARCH MODAL */
-#search-modal .modal-box{margin-top:20px}
-.search-cell-info{margin-bottom:10px;padding:10px 12px;background:#F6F7F9;border-radius:6px;font-size:.8rem}
+/* SEARCH */
+.search-cell-info{margin-bottom:10px;padding:10px 12px;background:var(--panel);border-radius:6px;font-size:.8rem}
 .search-cell-info .crit-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-weight:600}
 .search-cell-info .crit-row:last-child{margin-bottom:0}
-.search-answer-count{font-size:.75rem;color:#555;margin-top:6px;font-weight:500}
-#search-input{width:100%;padding:10px 12px;font-family:inherit;font-size:.9rem;border:2px solid #1C232D;border-radius:0;outline:none;background:#fff;margin-bottom:8px;flex-shrink:0}
-#search-input:focus{border-color:#0A0082;box-shadow:0 0 0 2px rgba(10,0,130,.1)}
-#search-results{overflow-y:auto;max-height:280px}
-.result-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:.85rem;gap:8px}
-.result-item:hover{background:#F6F7F9}
-.result-name{font-weight:600;flex:1}
-.result-meta{font-size:.72rem;color:#777;flex-shrink:0}
-.search-empty{padding:24px;text-align:center;color:#aaa;font-size:.85rem}
+.search-answer-count{font-size:.75rem;color:#666;margin-top:6px;font-weight:500}
+#search-input{width:100%;padding:10px 12px;font-family:inherit;font-size:.9rem;border:2px solid var(--border);border-radius:0;outline:none;background:#fff;margin-bottom:8px;flex-shrink:0}
+#search-input:focus{border-color:var(--green)}
+#search-results{overflow-y:auto;max-height:260px}
+.result-item{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;cursor:pointer;border-radius:6px;font-size:14px;gap:8px}
+.result-item:hover{background:var(--panel)}
+.result-name{font-weight:700;flex:1}
+.result-meta{font-size:12px;color:#888;flex-shrink:0}
+.search-empty{padding:20px;text-align:center;color:#aaa;font-size:13px}
 
 /* END MODAL */
-.end-title{font-size:1.5rem;font-weight:800;margin-bottom:4px}
-.end-score{font-size:2.2rem;font-weight:800;color:#0A0082;margin:8px 0}
-.end-stats{font-size:.88rem;color:#555;margin-bottom:14px}
-.emoji-grid{font-size:1.5rem;line-height:2;letter-spacing:4px;margin:10px 0;font-family:monospace}
+.end-score{font-size:2rem;font-weight:800;color:var(--green);margin:8px 0}
+.end-stat-grid{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.end-stat-grid div{flex:1;min-width:100px;text-align:center;background:var(--panel);border:2px solid var(--border);padding:10px 8px}
+.end-stat-grid div b{display:block;font-size:18px;margin-top:2px}
+.end-stat-grid div span{font-size:11px;color:#6b6a60;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .end-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.emoji-grid{font-size:1.4rem;line-height:2;letter-spacing:3px;margin:10px 0;font-family:monospace}
 
-/* HELP / EXPLAIN MODAL */
-.help-rule{display:flex;gap:9px;margin-bottom:11px;font-size:.85rem;line-height:1.5}
-.help-rule .icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
-.dont-show{display:flex;align-items:center;gap:8px;font-size:.8rem;margin-top:12px;padding-top:12px;border-top:1px solid #eee;cursor:pointer}
-#explain-modal .modal-body{font-size:.9rem;line-height:1.6}
-#explain-count{font-weight:700;color:#0A0082}
+/* HELP */
+.help-rule{display:flex;gap:9px;margin-bottom:10px;font-size:14px;line-height:1.5}
+.help-rule .icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.dont-show{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:12px;padding-top:12px;border-top:1px solid #ddd7c4;cursor:pointer}
+#explain-count{font-weight:700;color:var(--green)}
 
 /* TOAST */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C232D;color:#fff;padding:9px 20px;border-radius:4px;font-size:.85rem;font-weight:600;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:9px 20px;border-radius:4px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
 
 /* RESPONSIVE */
-@media(max-width:520px){
-  #game-grid{
-    grid-template-columns:95px repeat(3,1fr);
-    grid-template-rows:95px repeat(3,1fr);
-    gap:4px;
-    height:clamp(340px,calc(100svh - 130px),500px);
-  }
-  .crit-header{padding:4px;border-radius:8px}
-  .crit-label{font-size:.6rem}
-  .game-cell{border-radius:8px;padding:3px}
-  .game-cell .player-name{font-size:.62rem}
-  .game-cell .plus-icon{font-size:1.3rem}
-  #app-header h1{font-size:1.1rem}
-  .btn{font-size:.72rem;padding:5px 9px}
-  #score-bar{padding:6px 12px}
+@media(max-width:480px){
+  .site{padding:0 10px 40px}
+  .grid{gap:6px}
+  .brand{font-size:24px}
+  .cell{font-size:10px;padding:5px 3px}
+  .cell .player-name{font-size:9.5px}
+  .cell .plus-icon{font-size:1.2rem}
+  .cell .pts-badge{font-size:9px;padding:1px 5px}
+  .cell .rarity-label{font-size:8px}
+  .head{font-size:10px;padding:5px 3px}
+  .head .crit-label{font-size:9.5px}
+  .head .crit-badge{width:16px;height:16px}
+  .btn{font-size:12px;padding:10px 12px}
+  .score-display{font-size:14px}
 }
 
 </style>
 </head>
 <body>
 
-<div id="app">
-  <header id="app-header">
-    <h1>⚽ FootballDoku</h1>
-    <div class="header-right">
-      <span id="streak-badge" hidden></span>
-      <button class="btn" id="btn-random">Nouvelle grille</button>
-      <button class="btn btn-danger" id="btn-giveup">Abandonner</button>
-      <button class="btn" id="btn-help">Règles</button>
+<div class="site">
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="brand">⚽ FootballDoku</span>
+      <nav class="nav">
+        <button class="nav-link" id="btn-help">Règles</button>
+        <span id="streak-badge" hidden>🔥 <span id="streak-inner">0</span></span>
+      </nav>
     </div>
   </header>
 
-  <div id="score-bar">
-    <div id="score-display">Score : <span id="score-val">0</span> pts</div>
-    <div class="errors-dots">
-      <span>Erreurs :</span>
-      <span class="err-dot" id="d0"></span>
-      <span class="err-dot" id="d1"></span>
-      <span class="err-dot" id="d2"></span>
+  <div class="game-topbar">
+    <span class="score-display">Score : <span id="score-val">0</span> pts</span>
+  </div>
+
+  <div class="grid">
+    <div class="grid-corner"></div>
+    <div class="head crit-header" id="ch-0"><span class="crit-help">?</span></div>
+    <div class="head crit-header" id="ch-1"><span class="crit-help">?</span></div>
+    <div class="head crit-header" id="ch-2"><span class="crit-help">?</span></div>
+
+    <div class="head crit-header" id="rh-0"><span class="crit-help">?</span></div>
+    <div class="cell game-cell" id="cell-0"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-1"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-2"><span class="plus-icon">+</span></div>
+
+    <div class="head crit-header" id="rh-1"><span class="crit-help">?</span></div>
+    <div class="cell game-cell" id="cell-3"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-4"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-5"><span class="plus-icon">+</span></div>
+
+    <div class="head crit-header" id="rh-2"><span class="crit-help">?</span></div>
+    <div class="cell game-cell" id="cell-6"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-7"><span class="plus-icon">+</span></div>
+    <div class="cell game-cell" id="cell-8"><span class="plus-icon">+</span></div>
+  </div>
+
+  <div class="game-bottombar">
+    <button class="btn btn-secondary abandon-button" id="btn-giveup">Abandonner et voir les solutions</button>
+    <div class="mistake-counter">
+      <span class="mistake-label">Erreurs</span>
+      <span class="mistake-dots">
+        <span class="err-dot" id="d0"></span>
+        <span class="err-dot" id="d1"></span>
+        <span class="err-dot" id="d2"></span>
+      </span>
     </div>
   </div>
 
-  <div id="grid-wrap">
-    <div id="game-grid">
-      <div class="grid-corner"></div>
-      <div class="crit-header" id="ch-0"><span class="crit-help">?</span></div>
-      <div class="crit-header" id="ch-1"><span class="crit-help">?</span></div>
-      <div class="crit-header" id="ch-2"><span class="crit-help">?</span></div>
-
-      <div class="crit-header" id="rh-0"><span class="crit-help">?</span></div>
-      <div class="game-cell" id="cell-0"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-1"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-2"><span class="plus-icon">+</span></div>
-
-      <div class="crit-header" id="rh-1"><span class="crit-help">?</span></div>
-      <div class="game-cell" id="cell-3"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-4"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-5"><span class="plus-icon">+</span></div>
-
-      <div class="crit-header" id="rh-2"><span class="crit-help">?</span></div>
-      <div class="game-cell" id="cell-6"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-7"><span class="plus-icon">+</span></div>
-      <div class="game-cell" id="cell-8"><span class="plus-icon">+</span></div>
-    </div>
+  <div class="controls-secondary">
+    <button class="btn btn-primary" id="btn-random">Nouvelle grille</button>
   </div>
+
   <div id="data-note">⚠️ Les données couvrent uniquement les matchs joués à partir de juillet 2012 (source : Transfermarkt)</div>
 </div>
 
@@ -208,7 +231,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
       <h2>Trouver un joueur</h2>
       <button class="modal-close" id="search-close">×</button>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;padding:12px">
+    <div class="modal-body" style="display:flex;flex-direction:column;padding:12px 16px">
       <div class="search-cell-info" id="search-cell-info"></div>
       <input type="text" id="search-input" placeholder="Tapez un nom de joueur…" autocomplete="off" autocorrect="off" spellcheck="false">
       <div id="search-results"><div class="search-empty">Tapez au moins une lettre pour chercher</div></div>
@@ -225,7 +248,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
     </div>
     <div class="modal-body">
       <p id="explain-desc" style="margin-bottom:10px"></p>
-      <p style="font-size:.85rem;color:#555"><span id="explain-count">0</span> joueurs satisfont ce critère dans la base.</p>
+      <p><span id="explain-count">0</span> joueurs satisfont ce critère dans la base.</p>
     </div>
   </div>
 </div>
@@ -238,10 +261,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
       <button class="modal-close" id="giveup-close">×</button>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:16px;font-size:.9rem">Les solutions seront révélées. Votre score actuel sera conservé.</p>
+      <p style="margin-bottom:16px">Les solutions seront révélées. Votre score actuel sera conservé.</p>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-danger" id="giveup-confirm">Oui, abandonner</button>
-        <button class="btn" id="giveup-cancel">Annuler</button>
+        <button class="btn btn-secondary" style="background:var(--red);border-color:var(--red);color:#fff" id="giveup-confirm">Oui, abandonner</button>
+        <button class="btn btn-secondary" id="giveup-cancel">Annuler</button>
       </div>
     </div>
   </div>
@@ -256,12 +279,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
     </div>
     <div class="modal-body">
       <div class="end-score" id="end-score-val">0 pts</div>
-      <div class="end-stats" id="end-stats"></div>
+      <div class="end-stat-grid" id="end-stat-grid"></div>
       <div class="emoji-grid" id="end-emojis"></div>
-      <p style="font-size:.72rem;color:#888;margin-bottom:8px">🟩 115pts Mythique · 🟦 90pts Rare · 🟧 75pts Commun · 🟥 60pts Très commun · ⬜ non trouvé</p>
+      <p style="font-size:11px;color:#888;margin-bottom:8px">🟩 115pts Mythique · 🟦 90pts Rare · 🟧 75pts Commun · 🟥 60pts Très commun · ⬜ non trouvé</p>
       <div class="end-actions">
         <button class="btn btn-primary" id="end-copy">📋 Copier le résultat</button>
-        <button class="btn" id="end-random">Nouvelle grille</button>
+        <button class="btn btn-secondary" id="end-random">Nouvelle grille</button>
       </div>
     </div>
   </div>
@@ -277,7 +300,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F6F7F9;color:#1C232D;d
     <div class="modal-body">
       <div class="help-rule"><span class="icon">⚽</span><span>Trouvez un joueur qui correspond <strong>à la fois</strong> au critère de sa ligne et de sa colonne.</span></div>
       <div class="help-rule"><span class="icon">🚫</span><span>Chaque joueur ne peut être utilisé qu'une seule fois dans la grille.</span></div>
-      <div class="help-rule"><span class="icon">❌</span><span>Vous avez droit à <strong>3 erreurs</strong> maximum. Une erreur = un joueur qui ne satisfait pas les deux critères. Chaque erreur coûte <strong>20 pts</strong>.</span></div>
+      <div class="help-rule"><span class="icon">❌</span><span>Vous avez droit à <strong>3 erreurs</strong> maximum. Chaque erreur coûte <strong>20 pts</strong>.</span></div>
       <div class="help-rule"><span class="icon">🏆</span><span>Le score dépend de la célébrité du joueur parmi les réponses possibles de la case : <strong>Mythique 115pts · Rare 90pts · Commun 75pts · Très commun 60pts</strong>.</span></div>
       <div class="help-rule"><span class="icon">?</span><span>Cliquez sur l'en-tête d'un critère pour voir combien de joueurs le satisfont.</span></div>
       <div class="help-rule"><span class="icon">⚠️</span><span>Les données couvrent uniquement les matchs joués à partir de <strong>juillet 2012</strong>.</span></div>
@@ -307,7 +330,6 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 const TYPE_COLOR={nat:'#16a34a',club:'#2563eb',trophy:'#d97706',final:'#7c3aed',stat:'#0891b2',pos:'#db2777',name:'#6b7280'};
 
 const CRITERIA=[
-  // NATIONALITÉ
   {id:'nat_fr',label:'International français',type:'nat',desc:'A été sélectionné avec l\'équipe de France',test:p=>p.nat==='France'},
   {id:'nat_es',label:'International espagnol',type:'nat',desc:'A été sélectionné avec la Roja',test:p=>p.nat==='Spain'},
   {id:'nat_de',label:'International allemand',type:'nat',desc:'A été sélectionné avec la Mannschaft',test:p=>p.nat==='Germany'},
@@ -318,7 +340,6 @@ const CRITERIA=[
   {id:'nat_en',label:'International anglais',type:'nat',desc:'A été sélectionné avec les Three Lions',test:p=>p.nat==='England'},
   {id:'nat_nl',label:'International néerlandais',type:'nat',desc:'A été sélectionné avec l\'Oranje',test:p=>p.nat==='Netherlands'},
   {id:'nat_sn',label:'International sénégalais',type:'nat',desc:'A été sélectionné avec les Lions de la Téranga',test:p=>p.nat==='Senegal'},
-  // CLUBS
   {id:'cl_rma',label:'A joué pour le Real Madrid',type:'club',desc:'A porté le maillot du Real Madrid CF',test:p=>p.cl.includes('RMA')},
   {id:'cl_bar',label:'A joué pour le FC Barcelone',type:'club',desc:'A porté le maillot du FC Barcelone',test:p=>p.cl.includes('BAR')},
   {id:'cl_fcb',label:'A joué pour le Bayern Munich',type:'club',desc:'A porté le maillot du FC Bayern München',test:p=>p.cl.includes('FCB')},
@@ -332,19 +353,16 @@ const CRITERIA=[
   {id:'cl_mil',label:'A joué pour l\'AC Milan',type:'club',desc:'A porté le maillot de l\'AC Milan',test:p=>p.cl.includes('MIL')},
   {id:'cl_bvb',label:'A joué pour le B. Dortmund',type:'club',desc:'A porté le maillot du Borussia Dortmund',test:p=>p.cl.includes('BVB')},
   {id:'cl_atm',label:'A joué pour l\'Atlético Madrid',type:'club',desc:'A porté le maillot de l\'Atlético de Madrid',test:p=>p.cl.includes('ATM')},
-  // TROPHÉES
   {id:'tr_gb1',label:'Champion de Premier League',type:'trophy',desc:'A remporté le titre de champion d\'Angleterre',test:p=>p.tr.includes('GB1')},
   {id:'tr_es1',label:'Champion de La Liga',type:'trophy',desc:'A remporté le titre de champion d\'Espagne',test:p=>p.tr.includes('ES1')},
   {id:'tr_it1',label:'Champion de Serie A',type:'trophy',desc:'A remporté le titre de champion d\'Italie',test:p=>p.tr.includes('IT1')},
   {id:'tr_fr1',label:'Champion de Ligue 1',type:'trophy',desc:'A remporté le titre de champion de France',test:p=>p.tr.includes('FR1')},
   {id:'tr_l1',label:'Champion de Bundesliga',type:'trophy',desc:'A remporté le titre de champion d\'Allemagne',test:p=>p.tr.includes('L1')},
   {id:'tr_cl',label:'Vainqueur de la Ligue des Champions',type:'trophy',desc:'A remporté la Ligue des Champions de l\'UEFA',test:p=>p.tr.includes('CL')},
-  // FINALES LDC
   {id:'fin_1',label:'A disputé une finale de LdC',type:'final',desc:'A participé à au moins une finale de Ligue des Champions (depuis 2012)',test:p=>p.clf>=1},
   {id:'fin_2',label:'A disputé 2+ finales de LdC',type:'final',desc:'A participé à au moins deux finales de Ligue des Champions (depuis 2012)',test:p=>p.clf>=2},
   {id:'fin_g',label:'A marqué en finale de LdC',type:'final',desc:'A marqué au moins un but en finale de Ligue des Champions (depuis 2012)',test:p=>p.clg>0},
   {id:'fin_w2',label:'A remporté 2+ Ligues des Champions',type:'final',desc:'A gagné la Ligue des Champions à au moins deux reprises (depuis 2012)',test:p=>p.clw>=2},
-  // STATS
   {id:'st_g15',label:'15+ buts en championnat (1 saison)',type:'stat',desc:'A marqué au moins 15 buts en championnat lors d\'une seule saison (depuis 2012)',test:p=>p.msg>=15},
   {id:'st_g20',label:'20+ buts en championnat (1 saison)',type:'stat',desc:'A marqué au moins 20 buts en championnat lors d\'une seule saison (depuis 2012)',test:p=>p.msg>=20},
   {id:'st_cl5',label:'5+ buts en LdC (carrière)',type:'stat',desc:'A marqué au moins 5 buts en Ligue des Champions au cours de sa carrière',test:p=>p.clbg>=5},
@@ -352,13 +370,11 @@ const CRITERIA=[
   {id:'st_cap',label:'50+ sélections internationales',type:'stat',desc:'A obtenu au moins 50 sélections avec son équipe nationale',test:p=>p.caps>=50},
   {id:'st_left',label:'Pied gauche',type:'stat',desc:'Est naturellement pied gauche',test:p=>p.ft==='left'},
   {id:'st_tall',label:'Taille ≥ 190 cm',type:'stat',desc:'Mesure au moins 190 centimètres',test:p=>p.h>=190},
-  // POSITION
   {id:'pos_gk',label:'Gardien de but',type:'pos',desc:'Évolue ou a évolué au poste de gardien de but',test:p=>p.pos==='Goalkeeper'},
   {id:'pos_cb',label:'Défenseur central',type:'pos',desc:'Évolue ou a évolué au poste de défenseur central',test:p=>p.sp==='Centre-Back'},
   {id:'pos_dm',label:'Milieu défensif',type:'pos',desc:'Évolue ou a évolué au poste de milieu défensif',test:p=>p.sp==='Defensive Midfield'},
   {id:'pos_am',label:'Milieu offensif / Meneur',type:'pos',desc:'Évolue ou a évolué au poste de milieu offensif ou meneur de jeu',test:p=>p.sp==='Attacking Midfield'||p.sp==='Second Striker'},
   {id:'pos_cf',label:'Avant-centre',type:'pos',desc:'Évolue ou a évolué au poste d\'avant-centre',test:p=>p.sp==='Centre-Forward'},
-  // NOM
   {id:'nm_pa',label:'Prénom commence par A',type:'name',desc:'Le prénom du joueur commence par la lettre A',test:p=>normStr(firstName(p.n)).startsWith('a')},
   {id:'nm_pm',label:'Prénom commence par M',type:'name',desc:'Le prénom du joueur commence par la lettre M',test:p=>normStr(firstName(p.n)).startsWith('m')},
   {id:'nm_sb',label:'Nom de famille commence par B',type:'name',desc:'Le nom de famille du joueur commence par la lettre B',test:p=>normStr(lastName(p.n)).startsWith('b')},
@@ -391,7 +407,6 @@ function generateGrid(rng){
   const MAX_TRY=500;
   for(let attempt=0;attempt<MAX_TRY;attempt++){
     const shuffled=shuffle(CRITERIA,rng);
-    // Pick 3 row criteria: ≥2 types, max 1 'name' type
     let rows=null;
     outer:for(let i=0;i<shuffled.length&&!rows;i++){
       const r0=shuffled[i];if(C_LIST[r0.id].length<20)continue;
@@ -401,7 +416,6 @@ function generateGrid(rng){
           const r2=shuffled[k];if(C_LIST[r2.id].length<20)continue;
           const types=new Set([r0.type,r1.type,r2.type]);
           if(types.size<2)continue;
-          // max 1 name among rows
           const nameCount=[r0,r1,r2].filter(r=>r.type==='name').length;
           if(nameCount>1)continue;
           rows=[r0,r1,r2];
@@ -411,31 +425,23 @@ function generateGrid(rng){
     if(!rows)continue;
     const rowIds=new Set(rows.map(r=>r.id));
     const nameInRows=rows.filter(r=>r.type==='name').length;
-
-    // Pick 3 col criteria: ≥2 types, max 1 name total across rows+cols
     const colCandidates=shuffle(CRITERIA.filter(c=>!rowIds.has(c.id)),rng);
     const cols=[];
     for(const c of colCandidates){
       if(cols.length===3)break;
       if(C_LIST[c.id].length<10)continue;
-      // check name constraint: nameInRows + nameInCols ≤ 1
       const nameInCols=cols.filter(cc=>cc.type==='name').length;
       if(c.type==='name'&&nameInRows+nameInCols>=1)continue;
-      // max 2 of same type in cols
       const typeCounts={};for(const cc of cols)typeCounts[cc.type]=(typeCounts[cc.type]||0)+1;
       if((typeCounts[c.type]||0)>=2)continue;
-      // check intersections with all rows
       let ok=true;
       for(const r of rows){if(intersect(r.id,c.id).length<MIN_CELL){ok=false;break}}
       if(!ok)continue;
-      // type diversity in cols
       const colTypes=new Set([...cols.map(cc=>cc.type),c.type]);
       if(cols.length>=2&&colTypes.size<2)continue;
       cols.push(c);
     }
     if(cols.length<3)continue;
-
-    // Build cells
     const cells=[];let bad=false;
     for(const r of rows){for(const c of cols){const cell=intersect(r.id,c.id);if(cell.length<MIN_CELL){bad=true;break}cells.push(cell)}if(bad)break}
     if(bad)continue;
@@ -449,7 +455,7 @@ function generateGrid(rng){
 // ─── CELL-RELATIVE SCORING ───────────────────────────────────────────────────
 function computeCellScores(cells){
   return cells.map(cellPlayers=>{
-    const sorted=cellPlayers.slice().sort((a,b)=>a.mv-b.mv); // ascending mv = less famous first = more pts
+    const sorted=cellPlayers.slice().sort((a,b)=>a.mv-b.mv);
     const n=sorted.length;
     const map=new Map();
     sorted.forEach((p,i)=>{
@@ -471,11 +477,10 @@ let grid=null,cellScores=[],answers=new Array(9).fill(null),errors=0,score=0,gam
 const ERROR_PENALTY=20;
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
-function critBadge(type){return`<span class="crit-badge" style="background:${TYPE_COLOR[type]};display:inline-block;width:11px;height:11px;border-radius:50%;flex-shrink:0"></span>`}
+function critBadge(type){return`<span class="crit-badge" style="background:${TYPE_COLOR[type]}"></span>`}
 function renderHeader(el,crit){
   el.innerHTML=`<span class="crit-help">?</span>${critBadge(crit.type)}<span class="crit-label">${crit.label}</span>`;
   el.dataset.critId=crit.id;
-  el.style.borderColor=TYPE_COLOR[crit.type];
 }
 function tierClass(pts){return{115:'t1',90:'t2',75:'t4',60:'t5'}[pts]||'t5'}
 function tierLabel(pts){return{115:'Mythique',90:'Rare',75:'Commun',60:'Très commun'}[pts]||''}
@@ -489,9 +494,9 @@ function renderCell(idx){
     const pts=cellPts(idx,ans);
     el.innerHTML=`<span class="player-name">${ans.n}</span><span class="pts-badge ${tierClass(pts)}">+${pts} pts</span><span class="rarity-label">${tierLabel(pts)}</span>`;
   }else if(gameOver&&sol){
-    el.classList.add('revealed');
+    el.classList.add('revealed');el.classList.remove('filled');
     el.style.cursor='pointer';
-    el.innerHTML=`<span class="player-name" style="color:#92400e">${sol.n}</span><span style="font-size:.6rem;color:#92400e;margin-top:3px;display:block">Cliquer pour voir toutes les réponses</span>`;
+    el.innerHTML=`<span class="player-name" style="color:#92400e">${sol.n}</span><span style="font-size:9px;color:#92400e;margin-top:3px;display:block">Voir toutes les réponses</span>`;
   }else{
     el.classList.remove('filled','revealed');
     el.style.cursor='';
@@ -509,7 +514,7 @@ function renderGrid(){
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
 let searchDebounce=null;
 function openSearch(cellIdx){
-  activeCell=cellIdx;
+  activeCell=cellIdx;solutionsMode=false;
   const row=Math.floor(cellIdx/3),col=cellIdx%3;
   const rc=grid.rows[row],cc=grid.cols[col];
   const count=grid.cells[cellIdx].length;
@@ -518,6 +523,7 @@ function openSearch(cellIdx){
      <div class="crit-row">${critBadge(cc.type)} <span>${cc.label}</span></div>
      <div class="search-answer-count">${count} réponse${count>1?'s':''} possible${count>1?'s':''} pour cette case</div>`;
   document.getElementById('search-input').value='';
+  document.getElementById('search-input').hidden=false;
   document.getElementById('search-results').innerHTML='<div class="search-empty">Tapez au moins une lettre pour chercher</div>';
   document.getElementById('search-modal').hidden=false;
   setTimeout(()=>document.getElementById('search-input').focus(),50);
@@ -538,16 +544,13 @@ function openSolutions(cellIdx){
      <div class="crit-row">${critBadge(cc.type)} <span>${cc.label}</span></div>
      <div class="search-answer-count">${count} réponse${count>1?'s':''} possible${count>1?'s':''} pour cette case</div>`;
   document.getElementById('search-input').hidden=true;
-  const sorted=players.slice().sort((a,b)=>{
-    const pa=cellPts(cellIdx,a),pb=cellPts(cellIdx,b);
-    return pb-pa; // most obscure (highest pts) first
-  });
+  const sorted=players.slice().sort((a,b)=>cellPts(cellIdx,b)-cellPts(cellIdx,a));
   document.getElementById('search-results').innerHTML=sorted.map(p=>{
     const pts=cellPts(cellIdx,p);
-    return `<div class="result-item" style="cursor:default">
+    return`<div class="result-item" style="cursor:default">
       <span class="result-name">${p.n}</span>
       <span class="result-meta">${p.nat} · ${p.sp||p.pos}</span>
-      <span class="pts-badge ${tierClass(pts)}" style="font-size:.65rem;padding:2px 6px;flex-shrink:0">+${pts}</span>
+      <span class="pts-badge ${tierClass(pts)}" style="font-size:10px;padding:2px 6px;flex-shrink:0">+${pts}</span>
     </div>`;
   }).join('');
   document.getElementById('search-modal').hidden=false;
@@ -600,9 +603,12 @@ function endGame(reason){
   const titles={win:'🏆 Victoire !',loss:'💀 Défaite',abandon:'🏳️ Abandon'};
   document.getElementById('end-title').textContent=titles[reason]||'Partie terminée';
   document.getElementById('end-score-val').textContent=`${score} pts`;
-  document.getElementById('end-stats').textContent=`${found}/9 cases trouvées · ${errors} erreur${errors!==1?'s':''} · -${errors*ERROR_PENALTY} pts`;
+  document.getElementById('end-stat-grid').innerHTML=
+    `<div><span>Trouvées</span><b>${found}/9</b></div>
+     <div><span>Erreurs</span><b>${errors}</b></div>
+     <div><span>Pénalité</span><b>-${errors*ERROR_PENALTY} pts</b></div>`;
   const rows3=[[0,1,2],[3,4,5],[6,7,8]];
-  document.getElementById('end-emojis').textContent=rows3.map(row=>row.map(i=>answers[i]?emojiForPts(answers[i].pts):'⬜').join(' ')).join('\n');
+  document.getElementById('end-emojis').textContent=rows3.map(row=>row.map(i=>answers[i]?emojiForPts(cellPts(i,answers[i])):'⬜').join(' ')).join('\n');
   document.getElementById('end-modal').hidden=false;
 }
 
@@ -617,7 +623,11 @@ function updateStreak(){
   try{localStorage.setItem('fd_streak',streak);localStorage.setItem('fd_streak_day',today)}catch(e){}
   renderStreak(streak);
 }
-function renderStreak(n){const el=document.getElementById('streak-badge');if(n>0){el.textContent=`🔥 ${n} jour${n>1?'s':''}`;el.hidden=false}else el.hidden=true}
+function renderStreak(n){
+  const el=document.getElementById('streak-badge');
+  if(n>0){document.getElementById('streak-inner').textContent=`${n} jour${n>1?'s':''}`;el.hidden=false}
+  else el.hidden=true;
+}
 function loadStreak(){
   try{
     const n=parseInt(localStorage.getItem('fd_streak')||'0'),day=localStorage.getItem('fd_streak_day')||'';
@@ -629,17 +639,16 @@ function loadStreak(){
 function copyResult(){
   const found=answers.filter(Boolean).length;
   const rows3=[[0,1,2],[3,4,5],[6,7,8]];
-  const emojis=rows3.map(row=>row.map(i=>answers[i]?emojiForPts(answers[i].pts):'⬜').join('')).join('\n');
+  const emojis=rows3.map(row=>row.map(i=>answers[i]?emojiForPts(cellPts(i,answers[i])):'⬜').join('')).join('\n');
   const text=`FootballDoku\n${emojis}\n${found}/9 · ${score} pts · ${errors} erreur${errors!==1?'s':''}`;
   navigator.clipboard.writeText(text).then(()=>showToast('Résultat copié !')).catch(()=>showToast('Impossible de copier'));
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function startGame(){
-  answers=new Array(9).fill(null);errors=0;score=0;gameOver=false;activeCell=-1;
+  answers=new Array(9).fill(null);errors=0;score=0;gameOver=false;activeCell=-1;solutionsMode=false;
   renderErrors();renderScore();
   document.getElementById('end-modal').hidden=true;
-  // Always random — new seed each call
   const rng=mulberry32(Math.random()*0xFFFFFFFF|0);
   grid=generateGrid(rng);
   if(!grid){showToast('Erreur de génération, réessai…');setTimeout(startGame,200);return}
@@ -656,7 +665,17 @@ document.querySelectorAll('.game-cell').forEach(el=>{
   });
 });
 document.querySelectorAll('.crit-header').forEach(el=>{
-  el.addEventListener('click',e=>{if(el.dataset.critId){const c=CRITERIA.find(x=>x.id===el.dataset.critId);if(c){document.getElementById('explain-title').textContent=c.label;document.getElementById('explain-desc').textContent=c.desc;document.getElementById('explain-count').textContent=C_LIST[c.id].length.toLocaleString('fr-FR');document.getElementById('explain-modal').hidden=false}}});
+  el.addEventListener('click',()=>{
+    if(el.dataset.critId){
+      const c=CRITERIA.find(x=>x.id===el.dataset.critId);
+      if(c){
+        document.getElementById('explain-title').textContent=c.label;
+        document.getElementById('explain-desc').textContent=c.desc;
+        document.getElementById('explain-count').textContent=C_LIST[c.id].length.toLocaleString('fr-FR');
+        document.getElementById('explain-modal').hidden=false;
+      }
+    }
+  });
 });
 document.getElementById('search-close').addEventListener('click',closeSearch);
 document.getElementById('search-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSearch()});
@@ -697,7 +716,6 @@ setTimeout(()=>{
   let fails=0,t0=performance.now();
   for(let i=0;i<50;i++){const rng=mulberry32(i*1337+42);const g=generateGrid(rng);if(!g)fails++;}
   console.log(`Grid gen: ${50-fails}/50 OK in ${(performance.now()-t0).toFixed(0)}ms`);
-  // name constraint check
   let nameViolations=0;
   for(let i=0;i<20;i++){const rng=mulberry32(i*999);const g=generateGrid(rng);if(g){const nameCount=[...g.rows,...g.cols].filter(c=>c.type==='name').length;if(nameCount>1)nameViolations++;}}
   console.log(`Name constraint (≤1 per grid): ${nameViolations===0?'✓ OK':'✗ FAIL '+nameViolations+' violations'}`);
