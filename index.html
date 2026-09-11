@@ -338,7 +338,6 @@ const CRITERIA=[
   {id:'nat_ar',label:'International argentin',type:'nat',desc:'A été sélectionné avec l\'Albiceleste',test:p=>p.nat==='Argentina'},
   {id:'nat_pt',label:'International portugais',type:'nat',desc:'A été sélectionné avec la Seleção das Quinas',test:p=>p.nat==='Portugal'},
   {id:'nat_en',label:'International anglais',type:'nat',desc:'A été sélectionné avec les Three Lions',test:p=>p.nat==='England'},
-  {id:'nat_nl',label:'International néerlandais',type:'nat',desc:'A été sélectionné avec l\'Oranje',test:p=>p.nat==='Netherlands'},
   {id:'nat_sn',label:'International sénégalais',type:'nat',desc:'A été sélectionné avec les Lions de la Téranga',test:p=>p.nat==='Senegal'},
   {id:'cl_rma',label:'A joué pour le Real Madrid',type:'club',desc:'A porté le maillot du Real Madrid CF',test:p=>p.cl.includes('RMA')},
   {id:'cl_bar',label:'A joué pour le FC Barcelone',type:'club',desc:'A porté le maillot du FC Barcelone',test:p=>p.cl.includes('BAR')},
@@ -351,7 +350,6 @@ const CRITERIA=[
   {id:'cl_psg',label:'A joué pour le PSG',type:'club',desc:'A porté le maillot du Paris Saint-Germain',test:p=>p.cl.includes('PSG')},
   {id:'cl_juv',label:'A joué pour la Juventus',type:'club',desc:'A porté le maillot de la Juventus FC',test:p=>p.cl.includes('JUV')},
   {id:'cl_mil',label:'A joué pour l\'AC Milan',type:'club',desc:'A porté le maillot de l\'AC Milan',test:p=>p.cl.includes('MIL')},
-  {id:'cl_bvb',label:'A joué pour le B. Dortmund',type:'club',desc:'A porté le maillot du Borussia Dortmund',test:p=>p.cl.includes('BVB')},
   {id:'cl_atm',label:'A joué pour l\'Atlético Madrid',type:'club',desc:'A porté le maillot de l\'Atlético de Madrid',test:p=>p.cl.includes('ATM')},
   {id:'tr_gb1',label:'Champion de Premier League',type:'trophy',desc:'A remporté le titre de champion d\'Angleterre',test:p=>p.tr.includes('GB1')},
   {id:'tr_es1',label:'Champion de La Liga',type:'trophy',desc:'A remporté le titre de champion d\'Espagne',test:p=>p.tr.includes('ES1')},
@@ -375,10 +373,10 @@ const CRITERIA=[
   {id:'pos_dm',label:'Milieu défensif',type:'pos',desc:'Évolue ou a évolué au poste de milieu défensif',test:p=>p.sp==='Defensive Midfield'},
   {id:'pos_am',label:'Milieu offensif / Meneur',type:'pos',desc:'Évolue ou a évolué au poste de milieu offensif ou meneur de jeu',test:p=>p.sp==='Attacking Midfield'||p.sp==='Second Striker'},
   {id:'pos_cf',label:'Avant-centre',type:'pos',desc:'Évolue ou a évolué au poste d\'avant-centre',test:p=>p.sp==='Centre-Forward'},
-  {id:'nm_pa',label:'Prénom commence par A',type:'name',desc:'Le prénom du joueur commence par la lettre A',test:p=>normStr(firstName(p.n)).startsWith('a')},
-  {id:'nm_pm',label:'Prénom commence par M',type:'name',desc:'Le prénom du joueur commence par la lettre M',test:p=>normStr(firstName(p.n)).startsWith('m')},
   {id:'nm_sb',label:'Nom de famille commence par B',type:'name',desc:'Le nom de famille du joueur commence par la lettre B',test:p=>normStr(lastName(p.n)).startsWith('b')},
   {id:'nm_sd',label:'Nom de famille commence par D',type:'name',desc:'Le nom de famille du joueur commence par la lettre D',test:p=>normStr(lastName(p.n)).startsWith('d')},
+  {id:'nm_sm',label:'Nom de famille commence par M',type:'name',desc:'Le nom de famille du joueur commence par la lettre M',test:p=>normStr(lastName(p.n)).startsWith('m')},
+  {id:'nm_ss',label:'Nom de famille commence par S',type:'name',desc:'Le nom de famille du joueur commence par la lettre S',test:p=>normStr(lastName(p.n)).startsWith('s')},
 ];
 
 // ─── PRECOMPUTE ───────────────────────────────────────────────────────────────
@@ -402,7 +400,7 @@ function findMatching(cells){
 }
 
 // ─── GRID GENERATION ─────────────────────────────────────────────────────────
-const MIN_CELL=3;
+const MIN_CELL=3;const MAX_CELL=50;
 function generateGrid(rng){
   const MAX_TRY=500;
   for(let attempt=0;attempt<MAX_TRY;attempt++){
@@ -435,7 +433,7 @@ function generateGrid(rng){
       const typeCounts={};for(const cc of cols)typeCounts[cc.type]=(typeCounts[cc.type]||0)+1;
       if((typeCounts[c.type]||0)>=2)continue;
       let ok=true;
-      for(const r of rows){if(intersect(r.id,c.id).length<MIN_CELL){ok=false;break}}
+      for(const r of rows){const n=intersect(r.id,c.id).length;if(n<MIN_CELL||n>MAX_CELL){ok=false;break}}
       if(!ok)continue;
       const colTypes=new Set([...cols.map(cc=>cc.type),c.type]);
       if(cols.length>=2&&colTypes.size<2)continue;
@@ -443,7 +441,7 @@ function generateGrid(rng){
     }
     if(cols.length<3)continue;
     const cells=[];let bad=false;
-    for(const r of rows){for(const c of cols){const cell=intersect(r.id,c.id);if(cell.length<MIN_CELL){bad=true;break}cells.push(cell)}if(bad)break}
+    for(const r of rows){for(const c of cols){const cell=intersect(r.id,c.id);if(cell.length<MIN_CELL||cell.length>MAX_CELL){bad=true;break}cells.push(cell)}if(bad)break}
     if(bad)continue;
     const solution=findMatching(cells);
     if(!solution)continue;
