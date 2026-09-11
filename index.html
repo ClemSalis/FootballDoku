@@ -357,7 +357,6 @@ const CRITERIA=[
   {id:'tr_cl',label:'Vainqueur de la Ligue des Champions',type:'trophy',desc:'A remporté la Ligue des Champions de l\'UEFA',test:p=>p.tr.includes('CL')},
   {id:'fin_1',label:'A disputé une finale de LdC',type:'final',desc:'A participé à au moins une finale de Ligue des Champions (depuis 2012)',test:p=>p.clf>=1},
   {id:'fin_g',label:'A marqué en finale de LdC',type:'final',desc:'A marqué au moins un but en finale de Ligue des Champions (depuis 2012)',test:p=>p.clg>0},
-  {id:'fin_w2',label:'A remporté la Ligue des Champions',type:'final',desc:'A gagné au moins une fois la Ligue des Champions (depuis 2012)',test:p=>p.clw>=1},
   {id:'st_g15',label:'15+ buts en championnat (1 saison)',type:'stat',desc:'A marqué au moins 15 buts en championnat lors d\'une seule saison (depuis 2012)',test:p=>p.msg>=15},
   {id:'st_g20',label:'20+ buts en championnat (1 saison)',type:'stat',desc:'A marqué au moins 20 buts en championnat lors d\'une seule saison (depuis 2012)',test:p=>p.msg>=20},
   {id:'st_cl5',label:'5+ buts en LdC (carrière)',type:'stat',desc:'A marqué au moins 5 buts en Ligue des Champions au cours de sa carrière',test:p=>p.clbg>=5},
