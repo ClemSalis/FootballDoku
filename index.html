@@ -38,6 +38,11 @@ body{font-family:'Albert Sans',system-ui,-apple-system,sans-serif;background:var
 .nav-link{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text);background:none;border:none;cursor:pointer;padding:6px 0;font-family:inherit}
 #streak-badge{display:inline-flex;align-items:center;gap:6px;background:var(--text);color:#fff;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:700}
 
+/* MODE HEADING */
+.mode-heading{margin-bottom:14px}
+.mode-label{display:block;font-size:20px;font-weight:800;color:var(--text)}
+.mode-date{display:block;font-size:20px;font-weight:800;color:var(--text)}
+
 /* SCORE BAR */
 .game-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
 .score-display{font-size:16px;font-weight:800}
@@ -173,11 +178,17 @@ body{font-family:'Albert Sans',system-ui,-apple-system,sans-serif;background:var
     <div class="header-inner">
       <span class="brand">⚽ FootballDoku</span>
       <nav class="nav">
+        <button class="nav-link" id="btn-daily">Grille du jour</button>
         <button class="nav-link" id="btn-help">Règles</button>
         <span id="streak-badge" hidden>🔥 <span id="streak-inner">0</span></span>
       </nav>
     </div>
   </header>
+
+  <div class="mode-heading">
+    <span class="mode-label" id="mode-label">grille du jour</span>
+    <span class="mode-date" id="mode-date">—</span>
+  </div>
 
   <div class="game-topbar">
     <span class="score-display">Score : <span id="score-val">0</span> / 900 pts</span>
@@ -218,7 +229,7 @@ body{font-family:'Albert Sans',system-ui,-apple-system,sans-serif;background:var
   </div>
 
   <div class="controls-secondary">
-    <button class="btn btn-primary" id="btn-random">Nouvelle grille</button>
+    <button class="btn btn-primary" id="btn-random">Grille aléatoire</button>
   </div>
 
   <div id="data-note">⚠️ Les données couvrent uniquement les matchs joués à partir de juillet 2012 (source : Transfermarkt)</div>
@@ -321,9 +332,11 @@ function normStr(s){return(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowe
 function firstName(name){const p=name.trim().split(/\s+/);return p[0]||''}
 function lastName(name){const p=name.trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]}
 function mulberry32(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function strHash(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0}return h}
+function seedFromString(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0}return h>>>0}
 function shuffle(arr,rng){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function todayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dateKey(d){return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}
+function shiftDateKey(key,delta){const[y,m,d]=key.split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));dt.setUTCDate(dt.getUTCDate()+delta);return`${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`}
+function formatDateKey(key){const[y,m,d]=key.split('-');return`${d}/${m}/${y}`}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 
 // ─── CRITERIA ────────────────────────────────────────────────────────────────
@@ -362,7 +375,6 @@ const CRITERIA=[
   {id:'st_fee',label:'Transféré pour 50M€ ou plus',type:'stat',desc:'A été transféré pour un montant d\'au moins 50 millions d\'euros',test:p=>p.fee>=50000000},
   {id:'st_cap',label:'50+ sélections internationales',type:'stat',desc:'A obtenu au moins 50 sélections avec son équipe nationale',test:p=>p.caps>=50},
   {id:'st_left',label:'Pied gauche',type:'stat',desc:'Est naturellement pied gauche',test:p=>p.ft==='left'},
-  {id:'st_tall',label:'Taille ≥ 190 cm',type:'stat',desc:'Mesure au moins 190 centimètres',test:p=>p.h>=190},
   {id:'pos_gk',label:'Gardien de but',type:'pos',desc:'Évolue ou a évolué au poste de gardien de but',test:p=>p.pos==='Goalkeeper'},
   {id:'pos_cb',label:'Défenseur central',type:'pos',desc:'Évolue ou a évolué au poste de défenseur central',test:p=>p.sp==='Centre-Back'},
   {id:'pos_dm',label:'Milieu défensif',type:'pos',desc:'Évolue ou a évolué au poste de milieu défensif',test:p=>p.sp==='Defensive Midfield'},
@@ -467,7 +479,21 @@ function cellPts(cellIdx,player){return(cellScores[cellIdx]&&cellScores[cellIdx]
 
 // ─── GAME STATE ──────────────────────────────────────────────────────────────
 let grid=null,cellScores=[],answers=new Array(9).fill(null),errors=0,score=0,gameOver=false,activeCell=-1,solutionsMode=false;
+let isDaily=false,currentDateKey='',gameSeed=0;
 const ERROR_PENALTY=20;
+const SAVE_KEY='fd_gamestate';
+function saveState(){
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify({
+      isDaily,dateKey:currentDateKey,seed:gameSeed,
+      placedIds:answers.map(p=>p?p.id:null),
+      errors,score,gameOver
+    }));
+  }catch(e){}
+}
+function loadState(){
+  try{const r=localStorage.getItem(SAVE_KEY);return r?JSON.parse(r):null}catch(e){return null}
+}
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function critBadge(type){return`<span class="crit-badge" style="background:${TYPE_COLOR[type]}"></span>`}
@@ -576,11 +602,11 @@ function submitAnswer(cellIdx,player){
   const el=document.getElementById(`cell-${cellIdx}`);
   if(valid){
     answers[cellIdx]=player;score+=cellPts(cellIdx,player);
-    renderCell(cellIdx);renderScore();
+    renderCell(cellIdx);renderScore();saveState();
     if(answers.every(Boolean))endGame('win');
   }else{
     errors++;score=Math.max(0,score-ERROR_PENALTY);
-    renderErrors();renderScore();
+    renderErrors();renderScore();saveState();
     el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400);
     showToast(`❌ ${player.n} ne correspond pas aux deux critères`);
     if(errors>=3)endGame('loss');
@@ -591,7 +617,8 @@ function submitAnswer(cellIdx,player){
 function endGame(reason){
   gameOver=true;
   for(let i=0;i<9;i++)renderCell(i);
-  if(reason==='win')updateStreak();
+  if(reason==='win'&&isDaily)registerDailyWin();
+  saveState();
   const found=answers.filter(Boolean).length;
   const titles={win:'🏆 Victoire !',loss:'💀 Défaite',abandon:'🏳️ Abandon'};
   document.getElementById('end-title').textContent=titles[reason]||'Partie terminée';
@@ -606,13 +633,13 @@ function endGame(reason){
 }
 
 // ─── STREAK ──────────────────────────────────────────────────────────────────
-function updateStreak(){
-  const today=todayStr();let streak=0,lastDay='';
+function registerDailyWin(){
+  const today=dateKey(new Date());
+  let streak=0,lastDay='';
   try{streak=parseInt(localStorage.getItem('fd_streak')||'0');lastDay=localStorage.getItem('fd_streak_day')||''}catch(e){}
   if(lastDay===today)return;
-  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  const yStr=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-  streak=lastDay===yStr?streak+1:1;
+  const prevKey=shiftDateKey(today,-1);
+  streak=lastDay===prevKey?streak+1:1;
   try{localStorage.setItem('fd_streak',streak);localStorage.setItem('fd_streak_day',today)}catch(e){}
   renderStreak(streak);
 }
@@ -624,7 +651,7 @@ function renderStreak(n){
 function loadStreak(){
   try{
     const n=parseInt(localStorage.getItem('fd_streak')||'0'),day=localStorage.getItem('fd_streak_day')||'';
-    if(n>0){const today=todayStr();const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const yStr=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;if(day===today||day===yStr)renderStreak(n)}
+    if(n>0){const today=dateKey(new Date());const prev=shiftDateKey(today,-1);if(day===today||day===prev)renderStreak(n)}
   }catch(e){}
 }
 
@@ -633,20 +660,53 @@ function copyResult(){
   const found=answers.filter(Boolean).length;
   const rows3=[[0,1,2],[3,4,5],[6,7,8]];
   const emojis=rows3.map(row=>row.map(i=>answers[i]?emojiForPts(cellPts(i,answers[i])):'⬜').join('')).join('\n');
-  const text=`FootballDoku\n${emojis}\n${found}/9 · ${score} pts · ${errors} erreur${errors!==1?'s':''}`;
+  const label=isDaily?`FootballDoku du ${formatDateKey(currentDateKey)}`:'FootballDoku (grille aléatoire)';
+  const text=`${label}\n${emojis}\n${found}/9 · ${score} pts · ${errors} erreur${errors!==1?'s':''}`;
   navigator.clipboard.writeText(text).then(()=>showToast('Résultat copié !')).catch(()=>showToast('Impossible de copier'));
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-function startGame(){
+function startGame(daily=false,restore=null){
+  isDaily=daily;
+  currentDateKey=dateKey(new Date());
+  if(restore){gameSeed=restore.seed}
+  else if(daily){gameSeed=seedFromString(currentDateKey)}
+  else{gameSeed=(Math.random()*0xFFFFFFFF|0)}
+
+  document.getElementById('mode-label').textContent=daily?'grille du jour':'grille aléatoire';
+  document.getElementById('mode-date').textContent=daily?formatDateKey(currentDateKey):'hors série';
+
+  if(restore){
+    // Reconstruct grid from seed
+    const rng=mulberry32(gameSeed);
+    grid=generateGrid(rng);
+    if(!grid){startGame(daily);return}
+    cellScores=computeCellScores(grid.cells);
+    answers=new Array(9).fill(null);
+    errors=restore.errors||0;score=restore.score||0;gameOver=restore.gameOver||false;
+    activeCell=-1;solutionsMode=false;
+    renderErrors();renderScore();
+    document.getElementById('end-modal').hidden=true;
+    renderGrid();
+    // Re-place saved answers
+    restore.placedIds.forEach((id,i)=>{
+      if(!id)return;
+      const p=playerById.get(id);
+      if(p){answers[i]=p;renderCell(i);}
+    });
+    if(gameOver){for(let i=0;i<9;i++)renderCell(i);}
+    return;
+  }
+
   answers=new Array(9).fill(null);errors=0;score=0;gameOver=false;activeCell=-1;solutionsMode=false;
   renderErrors();renderScore();
   document.getElementById('end-modal').hidden=true;
-  const rng=mulberry32(Math.random()*0xFFFFFFFF|0);
+  const rng=mulberry32(gameSeed);
   grid=generateGrid(rng);
-  if(!grid){showToast('Erreur de génération, réessai…');setTimeout(startGame,200);return}
+  if(!grid){showToast('Erreur de génération, réessai…');setTimeout(()=>startGame(daily),200);return}
   cellScores=computeCellScores(grid.cells);
   renderGrid();
+  saveState();
 }
 
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
@@ -673,7 +733,13 @@ document.querySelectorAll('.crit-header').forEach(el=>{
 document.getElementById('search-close').addEventListener('click',closeSearch);
 document.getElementById('search-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSearch()});
 document.getElementById('search-input').addEventListener('input',()=>{clearTimeout(searchDebounce);searchDebounce=setTimeout(doSearch,120)});
-document.getElementById('btn-random').addEventListener('click',startGame);
+document.getElementById('btn-daily').addEventListener('click',()=>{
+  const saved=loadState();
+  const todayKey=dateKey(new Date());
+  const dailyValid=saved&&saved.isDaily&&saved.dateKey===todayKey;
+  startGame(true,dailyValid?saved:null);
+});
+document.getElementById('btn-random').addEventListener('click',()=>startGame(false));
 document.getElementById('btn-giveup').addEventListener('click',()=>{if(!gameOver)document.getElementById('giveup-modal').hidden=false});
 document.getElementById('giveup-confirm').addEventListener('click',()=>{document.getElementById('giveup-modal').hidden=true;endGame('abandon')});
 document.getElementById('giveup-cancel').addEventListener('click',()=>{document.getElementById('giveup-modal').hidden=true});
@@ -685,7 +751,7 @@ document.getElementById('explain-close').addEventListener('click',()=>{document.
 document.getElementById('explain-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('explain-modal').hidden=true});
 document.getElementById('end-close').addEventListener('click',()=>{document.getElementById('end-modal').hidden=true});
 document.getElementById('end-copy').addEventListener('click',copyResult);
-document.getElementById('end-random').addEventListener('click',()=>{document.getElementById('end-modal').hidden=true;startGame()});
+document.getElementById('end-random').addEventListener('click',()=>{document.getElementById('end-modal').hidden=true;startGame(false)});
 document.getElementById('help-dontshow').addEventListener('change',e=>{try{localStorage.setItem('fd_nohelp',e.target.checked?'1':'')}catch(err){}});
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
@@ -701,7 +767,13 @@ document.addEventListener('keydown',e=>{
 loadStreak();
 let showHelp=true;try{showHelp=!localStorage.getItem('fd_nohelp')}catch(e){}
 if(showHelp)document.getElementById('help-modal').hidden=false;
-startGame();
+{
+  const saved=loadState();
+  const todayKey=dateKey(new Date());
+  const stillValid=saved&&(!saved.isDaily||saved.dateKey===todayKey);
+  if(stillValid)startGame(saved.isDaily,saved);
+  else startGame(true);
+}
 
 // ─── SELF-TEST ───────────────────────────────────────────────────────────────
 setTimeout(()=>{
