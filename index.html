@@ -437,8 +437,9 @@ function generateGrid(rng){
       if(C_LIST[c.id].length<10)continue;
       const nameInCols=cols.filter(cc=>cc.type==='name').length;
       if(c.type==='name'&&nameInRows+nameInCols>=1)continue;
-      const typeCounts={};for(const cc of cols)typeCounts[cc.type]=(typeCounts[cc.type]||0)+1;
-      if((typeCounts[c.type]||0)>=2)continue;
+      const allSoFar=[...rows,...cols];
+      const typeTotal=allSoFar.filter(cc=>cc.type===c.type).length;
+      if(typeTotal>=2)continue;
       let ok=true;
       for(const r of rows){const n=intersect(r.id,c.id).length;if(n<MIN_CELL||n>MAX_CELL){ok=false;break}}
       if(!ok)continue;
