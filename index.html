@@ -87,6 +87,7 @@ body{font-family:'Albert Sans',system-ui,-apple-system,sans-serif;background:var
 .pts-badge.t5{background:#dc2626}
 .cell .rarity-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
 .cell .plus-icon{font-size:1.5rem;color:#bbb;line-height:1}
+.cell .cell-count{font-size:9px;font-weight:700;color:#bbb;letter-spacing:.02em;margin-top:2px}
 
 /* DATA NOTE */
 #data-note{text-align:center;font-size:.85rem;font-weight:700;color:#555;padding:6px 0 16px}
@@ -361,7 +362,6 @@ const CRITERIA=[
   {id:'cl_ars',label:'A joué pour Arsenal',type:'club',desc:'A porté le maillot d\'Arsenal FC',test:p=>p.cl.includes('ARS')},
   {id:'cl_psg',label:'A joué pour le PSG',type:'club',desc:'A porté le maillot du Paris Saint-Germain',test:p=>p.cl.includes('PSG')},
   {id:'cl_mil',label:'A joué pour l\'AC Milan',type:'club',desc:'A porté le maillot de l\'AC Milan',test:p=>p.cl.includes('MIL')},
-  {id:'cl_atm',label:'A joué pour l\'Atlético Madrid',type:'club',desc:'A porté le maillot de l\'Atlético de Madrid',test:p=>p.cl.includes('ATM')},
   {id:'tr_gb1',label:'Champion de Premier League',type:'trophy',desc:'A remporté le titre de champion d\'Angleterre',test:p=>p.tr.includes('GB1')},
   {id:'tr_es1',label:'Champion de La Liga',type:'trophy',desc:'A remporté le titre de champion d\'Espagne',test:p=>p.tr.includes('ES1')},
   {id:'tr_fr1',label:'Champion de Ligue 1',type:'trophy',desc:'A remporté le titre de champion de France',test:p=>p.tr.includes('FR1')},
@@ -519,7 +519,8 @@ function renderCell(idx){
   }else{
     el.classList.remove('filled','revealed');
     el.style.cursor='';
-    el.innerHTML=`<span class="plus-icon">+</span>`;
+    const count=grid&&grid.cells[idx]?grid.cells[idx].length:0;
+    el.innerHTML=`<span class="plus-icon">+</span><span class="cell-count">${count} rép.</span>`;
   }
 }
 function renderErrors(){for(let i=0;i<3;i++)document.getElementById(`d${i}`).classList.toggle('filled',i<errors)}
